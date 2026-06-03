@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ชั่วโมงขับ DC</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'TH Sarabun New';
+            src: local('TH Sarabun New');
+        }
+        body {
+            font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 overflow-hidden h-screen w-full flex flex-col text-slate-800">
+
+    <div class="flex-1 w-full relative z-0">
+        <iframe 
+            id="app-frame"
+            src="https://script.google.com/macros/s/AKfycbwNKuD6E4WhxDTeWHk9ugt3DCS5_26EiUsOxNiu1-MZTzf3UxgOjfQWCErIgIgO-EfCxg/exec" 
+            class="absolute inset-0 w-full h-full border-none">
+        </iframe>
+    </div>
+
+    <button id="install-btn" style="display: none;" class="fixed bottom-6 right-6 z-40 bg-slate-800 hover:bg-slate-900 text-white shadow-xl rounded-full px-5 py-3 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 border border-slate-700">
+        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        <span class="text-lg font-bold tracking-wide">ติดตั้งแอป</span>
+    </button>
+
+    <script>
+        // --- ระบบ PWA ติดตั้งแอป ---
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+
+        // 1. ลงทะเบียน Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => {
+                console.log('Service Worker Registered');
+            });
+        }
+
+        // 2. ดักจับ Event เมื่อ Chrome ตรวจพบว่าแอปนี้ติดตั้งได้
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // แสดงปุ่มติดตั้ง
+            installBtn.style.display = 'flex';
+        });
+
+        // 3. เมื่อกดปุ่ม ให้แสดงหน้าต่าง Pop-up ของ Chrome
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt(); // เรียกหน้าต่างติดตั้งของระบบ
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('User installed the app');
+                }
+                deferredPrompt = null;
+                installBtn.style.display = 'none'; // ซ่อนปุ่มเมื่อกดยืนยันแล้ว
+            }
+        });
+
+        // ซ่อนปุ่มถ้าแอปถูกติดตั้งไปแล้ว
+        window.addEventListener('appinstalled', () => {
+            installBtn.style.display = 'none';
+        });
+    </script>
+
+</body>
+</html>
